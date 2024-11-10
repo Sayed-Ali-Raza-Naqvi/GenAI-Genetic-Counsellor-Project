@@ -434,6 +434,13 @@ def genetic_counseling_assistant():
 
                 genes_data.append((gene_info, gene_function, mutations))
 
+            if genes_data:
+                # Display retrieved gene information
+                for gene_data in genes_data:
+                    gene_info, gene_function, mutations = gene_data
+                    st.subheader(f"Gene: {gene_info}")
+                    st.write(f"Function: {gene_function}")
+                    st.write(f"Mutations: {mutations}")
 
                 # Build complete context for chatbot (hidden from user)
                 complete_context = ""
@@ -452,11 +459,13 @@ def genetic_counseling_assistant():
                 # Chatbot interaction for follow-up questions
                 follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? Enter your question or leave blank to stop:", key="follow_up_question_input_1")
 
+                # Handle follow-up question and chatbot response
                 if follow_up_question:
                     # Call the chatbot function (assuming chatbot_with_groq is defined)
                     response = chatbot_with_groq(follow_up_question, st.session_state.chatbot_context)
                     st.session_state.chatbot_response = response
 
+                # Display the chatbot response if available
                 if st.session_state.chatbot_response:
                     st.write(f"Chatbot Response: {st.session_state.chatbot_response}")
 
