@@ -400,6 +400,8 @@ def genetic_counseling_assistant():
         st.session_state['user_question'] = None
     if 'mutation_consequences_done' not in st.session_state:
         st.session_state['mutation_consequences_done'] = False  # Track if mutation consequences step is done
+    if 'next_step' not in st.session_state:
+        st.session_state['next_step'] = False  # Control whether to move to the next set of data
 
     # Step 1: Enter gene names
     st.subheader("Step 1: Enter Gene Name")
@@ -498,9 +500,15 @@ def genetic_counseling_assistant():
             "Would you like to process another set of gene data?", options=["Yes", "No"]
         )
 
-        if continue_session == "No":
+        if continue_session == "Yes":
+            st.session_state['next_step'] = True  # Move to the next session
+            st.session_state['follow_up_question_asked'] = False  # Reset follow-up question flag
+            st.session_state['genes_data'] = []  # Reset gene data
+            st.session_state['mutation_consequences_done'] = False  # Reset mutation consequences
+            st.experimental_rerun()  # Force the app to rerun
+
+        elif continue_session == "No":
             st.write("Thank you for using the Genetic Counseling Assistant! Have a great day!")
-            # Reset session state to allow for a new session if necessary
             st.session_state['follow_up_question_asked'] = False  # Reset question asking flag
             st.session_state['genes_data'] = []  # Reset gene data
             st.session_state['chatbot_response'] = None  # Reset chatbot response
