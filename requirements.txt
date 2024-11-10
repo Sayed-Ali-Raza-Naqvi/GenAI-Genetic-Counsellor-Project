@@ -1,9 +1,6 @@
-pip>=23.0.0
 requests
-spacy
 reportlab
 PyMuPDF
 groq
 python-docx
 PyPDF2
-scispacy
