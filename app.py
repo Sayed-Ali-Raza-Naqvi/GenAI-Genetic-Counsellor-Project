@@ -511,6 +511,7 @@ def genetic_counseling_assistant():
             st.session_state['mutation_consequences_done'] = False  # Reset mutation consequences
             st.session_state['follow_up_question_asked'] = False  # Reset question flag
             st.session_state['chatbot_response'] = None  # Reset chatbot response
+
             
 
 # Run the Streamlit app
