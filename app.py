@@ -43,7 +43,7 @@ def landing_page():
     }
 
     .title-animation::after {
-        content: 'Welcome to Variantor';
+        content: 'Welcome to Enigma';
         display: inline-block;
         overflow: hidden;
         width: 0;
@@ -51,6 +51,8 @@ def landing_page():
         white-space: nowrap;
         font-size: 60px;
     }
+    </style>
+    """, unsafe_allow_html=True)
     
     st.image("https://via.placeholder.com/500x300.png?text=Variantor", caption="Your Genetic Assistant")
 
