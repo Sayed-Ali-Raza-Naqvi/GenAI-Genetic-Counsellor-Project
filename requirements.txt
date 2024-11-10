@@ -8,3 +8,4 @@ PyPDF2
 scikit-learn
 spacy-transformers
 https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.1/en_ner_bionlp13cg_md-0.5.1.tar.gz
+scispacy
