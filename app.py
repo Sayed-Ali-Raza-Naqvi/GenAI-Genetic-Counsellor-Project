@@ -23,7 +23,7 @@ st.set_page_config(page_title="Variantor - Genetic Counseling Assistant", page_i
 
 
 def landing_page():
-    st.title("Welcome to Variantor")
+    st.markdown("<p class='title-animation'></p>", unsafe_allow_html=True)
     st.subheader("A platform for Genetic Counseling and Mutation Analysis")
     st.write("Variantor is a tool designed for genetic counseling, helping users explore gene information, functions, and potential mutations.")
     st.write("Navigate through the pages using the sidebar.")
@@ -34,6 +34,24 @@ def landing_page():
         - **About**: Learn more about this project.
         """
     )
+
+    st.markdown("""
+    <style>
+    @keyframes typing-animation {
+        0% { width: 0; }
+        100% { width: 100%; }
+    }
+
+    .title-animation::after {
+        content: 'Welcome to Variantor';
+        display: inline-block;
+        overflow: hidden;
+        width: 0;
+        animation: typing-animation 8s ease-in-out forwards;
+        white-space: nowrap;
+        font-size: 60px;
+    }
+    
     st.image("https://via.placeholder.com/500x300.png?text=Variantor", caption="Your Genetic Assistant")
 
 def gene_analysis_page():
