@@ -1,5 +1,5 @@
 streamlit
-scispacy==0.5.1
+spacy
 reportlab==3.6.2
 PyMuPDF==1.18.19
 python-docx==0.8.11
