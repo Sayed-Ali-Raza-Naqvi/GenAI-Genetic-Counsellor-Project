@@ -398,6 +398,8 @@ def genetic_counseling_assistant():
         st.session_state['follow_up_question_asked'] = False
     if 'user_question' not in st.session_state:
         st.session_state['user_question'] = None
+    if 'mutation_consequences_done' not in st.session_state:
+        st.session_state['mutation_consequences_done'] = False  # Track if mutation consequences step is done
 
     # Step 1: Enter gene names
     st.subheader("Step 1: Enter Gene Name")
@@ -421,22 +423,28 @@ def genetic_counseling_assistant():
     )
 
     # Step 3: Get valid mutation consequences from the user
-    st.subheader("Step 3: Specify Mutation Consequences")
-    consequences = get_consequences_from_user()  # Assuming this function is defined
-    st.write(f"Available mutation consequences: {', '.join(consequences)}")  # Display the consequences
-    
-    # Make sure consequences are stored in session state
-    st.session_state['consequences'] = consequences
+    if not st.session_state['mutation_consequences_done']:  # Check if mutation consequences have been entered
+        st.subheader("Step 3: Specify Mutation Consequences")
+        consequences = get_consequences_from_user()  # Assuming this function is defined
+        st.write(f"Available mutation consequences: {', '.join(consequences)}")  # Display the consequences
 
-    # Step 4: Add button to process further
-    if st.button("Process Gene Data"):
+        # Store consequences in session state
+        st.session_state['consequences'] = consequences
+
+        # Set mutation consequences done to True after user has entered them
+        if st.button("Next"):
+            st.session_state['mutation_consequences_done'] = True
+            st.experimental_rerun()  # Forces the app to refresh and proceed
+
+    # Step 4: Add button to process further if mutation consequences are done
+    if st.session_state['mutation_consequences_done']:
         # Step 5: Retrieve and display gene data
         st.subheader("Step 5: Processing Gene Data...")
         genes_data = []
         for gene in genes:
             gene_info = get_gene_info_ensembl(gene)  # Replace with actual API call
             gene_function = get_gene_function(gene)  # Replace with actual API call
-            mutations = get_filtered_mutation_data_ensembl(gene, mutation_limit, consequences)
+            mutations = get_filtered_mutation_data_ensembl(gene, mutation_limit, st.session_state['consequences'])
 
             genes_data.append((gene_info, gene_function, mutations))
 
@@ -458,8 +466,6 @@ def genetic_counseling_assistant():
             st.subheader("Step 7: Ask Follow-up Question")
             follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? (yes/no):").strip().lower()
 
-            st.write(f"Follow-up question asked: {follow_up_question}")  # Debugging statement
-
             if follow_up_question == "yes":
                 st.session_state['follow_up_question_asked'] = True  # Mark that a follow-up question has been asked
 
@@ -468,11 +474,9 @@ def genetic_counseling_assistant():
                 if question:
                     st.session_state['user_question'] = question  # Store the question
                     st.session_state['chatbot_response'] = None  # Reset previous chatbot response
-                    
+
                     # Show button to submit the question
                     if st.button("Submit Follow-up Question"):
-                        st.write(f"User Question Submitted: {question}")  # Debugging statement
-
                         # Create the context based on previous gene data
                         complete_context = "\n".join([f"Gene Information: {gene[0]}" for gene in st.session_state['genes_data']])
 
@@ -481,7 +485,7 @@ def genetic_counseling_assistant():
 
                         # Store the chatbot response in session state
                         st.session_state['chatbot_response'] = chatbot_response
-                        st.write(f"Chatbot Response: {chatbot_response}")  # Debugging statement
+                        st.write(f"Chatbot Response: {chatbot_response}")
 
         elif st.session_state['follow_up_question_asked']:
             # Display the stored chatbot response if available
@@ -501,7 +505,6 @@ def genetic_counseling_assistant():
             st.session_state['follow_up_question_asked'] = False  # Reset question asking flag
             st.session_state['genes_data'] = []  # Reset gene data
             st.session_state['chatbot_response'] = None  # Reset chatbot response
-
 # Run the Streamlit app
 if __name__ == "__main__":
     genetic_counseling_assistant()
