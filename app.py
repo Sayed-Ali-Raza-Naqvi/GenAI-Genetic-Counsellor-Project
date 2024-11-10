@@ -12,15 +12,14 @@ import PyPDF2
 from dotenv import load_dotenv
 
 
-# load_dotenv()
+load_dotenv()
 
-# # Get the API key securely from the environment
-# api_key = os.getenv("GROQ_API_KEY")
-# if not api_key:
-#     raise ValueError("API key not found. Make sure GROQ_API_KEY is set in the .env file.")
+# Get the API key securely from the environment
+api_key = os.getenv("GROQ_API_KEY")
+if not api_key:
+    raise ValueError("API key not found. Make sure GROQ_API_KEY is set in the .env file.")
 
-# Initialize the client
-client = Groq(api_key="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")
+# client = Groq(api_key="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")
 
 def get_gene_info_ensembl(gene_name):
     """
@@ -70,7 +69,6 @@ def get_filtered_mutation_data_ensembl(gene_name, mutation_limit=5, mutation_typ
     Fetches mutation data for a gene from Ensembl and applies filters for each mutation type separately.
     Each mutation type gets its own limit.
     """
-    # Assuming get_gene_info_ensembl is defined elsewhere to fetch gene info.
     gene_info = get_gene_info_ensembl(gene_name)
 
     if gene_info:
@@ -86,27 +84,21 @@ def get_filtered_mutation_data_ensembl(gene_name, mutation_limit=5, mutation_typ
             print(f"Received {len(mutation_data)} mutations from Ensembl.")
 
             mutations = []
-            seen_variants = set()  # Track unique variants
-            count_per_mutation_type = {mt: 0 for mt in mutation_type_filters}  # Keep count of each mutation type
+            seen_variants = set()
+            count_per_mutation_type = {mt: 0 for mt in mutation_type_filters}
 
-            # Iterate through each mutation in the response
             for mutation in mutation_data:
                 variation_id = mutation.get("id", "N/A")
-                # If this variation has already been processed, skip it
                 if variation_id in seen_variants:
                     continue
 
                 consequence_type = mutation.get("consequence_type", [])
 
-                # Ensure it's always a list even if the API returns a single consequence
                 if isinstance(consequence_type, str):
                     consequence_type = [consequence_type]
 
-                # **Process each mutation type separately**
                 for mt in mutation_type_filters:
-                    # Check if the current mutation type (mt) exists in the mutation's consequence
                     if any(mt.lower() in consequence.lower() for consequence in consequence_type):
-                        # Ensure we don't exceed the mutation limit for this mutation type
                         if count_per_mutation_type[mt] >= mutation_limit:
                             continue
 
@@ -116,11 +108,9 @@ def get_filtered_mutation_data_ensembl(gene_name, mutation_limit=5, mutation_typ
                         if allele_string == "N/A":
                             allele_string = mutation.get("alleles", "N/A")
 
-                        # If allele_string is a list, join them into a string
                         if isinstance(allele_string, list):
-                            allele_string = ', '.join(allele_string)
+                            allele_string = '/'.join(allele_string)
 
-                        # Create a dictionary for this mutation
                         mutation_dict = {
                             "Variation": variation_id,
                             "Location": seq_region_name,
@@ -129,23 +119,18 @@ def get_filtered_mutation_data_ensembl(gene_name, mutation_limit=5, mutation_typ
                         }
                         mutations.append(mutation_dict)
 
-                        # Mark this variation as seen
                         seen_variants.add(variation_id)
 
-                        # Increment the count for this mutation type
                         count_per_mutation_type[mt] += 1
 
-                # Stop processing once we reach the desired limit for all types
                 if all(count >= mutation_limit for count in count_per_mutation_type.values()):
                     break
 
-            # Print how many mutations were found for each type
             for mt in mutation_type_filters:
                 print(f"Found {count_per_mutation_type[mt]} mutations for {mt}.")
 
             print(f"Total filtered mutations: {len(mutations)}")
 
-            # Return mutations if found, else return a message
             return mutations if mutations else "No mutations found that match the criteria."
         else:
             print(f"Error fetching mutation data from Ensembl for gene ID: {gene_id}, status code: {response.status_code}")
@@ -203,9 +188,9 @@ def draw_full_line(c, y_position, width=500, x_offset=100, line_padding=0):
     """
     Draw a full-width horizontal line to separate gene sections with more right padding.
     """
-    c.setStrokeColorRGB(0, 0, 0)  # Black color for the line
+    c.setStrokeColorRGB(0, 0, 0)
     c.setLineWidth(1)
-    c.line(x_offset, y_position, x_offset + width + line_padding, y_position)  # Added padding
+    c.line(x_offset, y_position, x_offset + width + line_padding, y_position)
 
 def generate_report(genes_data):
     """
@@ -216,31 +201,29 @@ def generate_report(genes_data):
     width, height = letter
     c.setFont("Helvetica", 14)
 
-    # Adjusted margins for header, footer, and more right padding
-    header_height = 50  # Space for header at the top
-    footer_height = 40  # Space for footer at the bottom
-    content_top_margin = 80  # Distance from the top to start content
-    content_bottom_margin = footer_height + 20  # Distance from the bottom to leave space for footer
-    x_offset = 120  # Increased x_offset for more right padding
+    header_height = 50
+    footer_height = 40
+    content_top_margin = 80
+    content_bottom_margin = footer_height + 20
+    x_offset = 120
 
     y_position = height - header_height - 20
 
-    # Set the title color to a distinct shade
-    c.setFillColorRGB(0.2, 0.4, 0.6)  # Light blue color for the title
+    c.setFillColorRGB(0.2, 0.4, 0.6)
     c.drawString(x_offset, y_position, "Genetic Counseling Report")
-    y_position -= 30  # Space below header
+    y_position -= 30
 
     def check_page_break(y_position):
         """Check if the current y_position is too low and a page break is needed"""
         if y_position < content_bottom_margin:
             c.showPage()
-            c.setFont("Helvetica", 14)  # Reset font for title after page break
-            c.setFillColorRGB(0.2, 0.4, 0.6)  # Ensure title color persists
-            y_position = height - header_height - 20  # Reset to top of the page with margin
-            c.drawString(x_offset, y_position, "Genetic Counseling Report")  # Re-add the title after page break
-            y_position -= 30  # Space below title after page break
+            c.setFont("Helvetica", 14)
+            c.setFillColorRGB(0.2, 0.4, 0.6)
+            y_position = height - header_height - 20
+            c.drawString(x_offset, y_position, "Genetic Counseling Report")
+            y_position -= 30
 
-            c.setFont("Helvetica", 10)  # Reset font for content
+            c.setFont("Helvetica", 10)
         return y_position
 
     for gene_data in genes_data:
@@ -254,12 +237,11 @@ def generate_report(genes_data):
         y_position = check_page_break(y_position)  # Check for page break after header
 
         c.setFont("Helvetica", 10)
-        # Gene information section
         if gene_info:
             for key, value in gene_info.items():
                 lines = wrap_text(f"{key}: {value}", width, 10, x_offset=x_offset)
                 for line in lines:
-                    y_position = check_page_break(y_position)  # Check for page break
+                    y_position = check_page_break(y_position)
                     c.drawString(x_offset, y_position, line)
                     y_position -= 15
         else:
@@ -268,11 +250,10 @@ def generate_report(genes_data):
 
         y_position -= 20
 
-        # Gene function header with underline and bold font
         c.setFont("Helvetica-Bold", 12)
         draw_underline(c, "Gene Function:", x_offset, y_position, x_offset=x_offset)
         y_position -= 30
-        y_position = check_page_break(y_position)  # Check for page break after header
+        y_position = check_page_break(y_position)
         c.setFont("Helvetica", 10)
 
         # Gene function section
@@ -300,14 +281,12 @@ def generate_report(genes_data):
 
         y_position -= 40
 
-        # Mutation header with underline and bold font
         c.setFont("Helvetica-Bold", 12)
         draw_underline(c, "Mutation Interpretation:", x_offset, y_position, x_offset=x_offset)
         y_position -= 30
-        y_position = check_page_break(y_position)  # Check for page break after header
+        y_position = check_page_break(y_position)
         c.setFont("Helvetica", 10)
 
-        # Mutation section
         if mutations:
             for mutation in mutations:
                 lines = wrap_text(f"Variation: {mutation['Variation']}", width, 10, x_offset=x_offset)
@@ -339,12 +318,10 @@ def generate_report(genes_data):
             c.drawString(x_offset, y_position, "No mutation information available.")
             y_position -= 20
 
-        # Draw a full-width line to separate different genes with extra padding on the right
         y_position -= 40
-        draw_full_line(c, y_position, width=500, x_offset=x_offset, line_padding=20)  # Added padding
+        draw_full_line(c, y_position, width=500, x_offset=x_offset, line_padding=20)
         y_position -= 40
 
-    # Finalize the PDF
     c.showPage()
     c.save()
     pdf_content = buffer.getvalue()
@@ -352,7 +329,6 @@ def generate_report(genes_data):
     return pdf_content
 
 
-# Simulating the same behavior of the get_consequences_from_user function as a streamlit input
 def get_consequences_from_user():
     so_terms = [
         "transcript_ablation", "splice_acceptor_variant", "splice_donor_variant", "stop_gained",
@@ -367,7 +343,6 @@ def get_consequences_from_user():
         "regulatory_region_amplification", "regulatory_region_variant", "intergenic_variant"
     ]
 
-    # Streamlit multi-select for mutation consequences
     st.subheader("Select Mutation Consequences")
     consequences_input = st.multiselect("Choose mutation consequences from the list", so_terms)
 
@@ -386,44 +361,34 @@ def get_chatbot_response(question, context):
     return chat_completion.choices[0].message.content
     
 
-import streamlit as st
-
-# Assuming all necessary functions like get_gene_info_ensembl(), get_gene_function(),
-# get_filtered_mutation_data_ensembl(), generate_report(), and chatbot_with_groq() are defined elsewhere.
-
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
 
     # Initialize session state variables
     if 'chatbot_context' not in st.session_state:
-        st.session_state.chatbot_context = ""  # To store the chatbot's context
+        st.session_state.chatbot_context = ""
     
     if 'chatbot_response' not in st.session_state:
-        st.session_state.chatbot_response = ""  # To store the chatbot's last response
+        st.session_state.chatbot_response = ""
     
     if 'genes_data' not in st.session_state:
-        st.session_state.genes_data = []  # To store genes data for session
+        st.session_state.genes_data = []
     
     if 'report_generated' not in st.session_state:
-        st.session_state.report_generated = False  # Track whether the report has been generated
+        st.session_state.report_generated = False
 
-    # Input for gene name
     gene_name = st.text_input("Enter a gene name:")
 
-    # Handle input for gene name
     if gene_name:
         genes = [gene_name]
         
-        # Input for mutation limit
         mutation_limit = st.number_input("Enter the number of mutations to retrieve (default 5):", min_value=1, value=5)
 
-        # Mutation consequences selection
         consequences = get_consequences_from_user()  # Assume this is a function you define
 
         submit_consequences_button = st.button("Submit Mutation Consequences")
 
         if submit_consequences_button:
-            # Retrieve gene data for all genes
             genes_data = []
             for gene in genes:
                 gene_info = get_gene_info_ensembl(gene)
@@ -431,10 +396,8 @@ def genetic_counseling_assistant():
                 mutations = get_filtered_mutation_data_ensembl(gene, mutation_limit, consequences)
                 genes_data.append((gene_info, gene_function, mutations))
 
-            # Store retrieved data in session state
             st.session_state.genes_data = genes_data
 
-            # Build complete context for the chatbot
             complete_context = ""
             for gene_data in genes_data:
                 gene_info, gene_function, mutations = gene_data
@@ -442,48 +405,33 @@ def genetic_counseling_assistant():
                 complete_context += f"Gene Function: {gene_function if gene_function else 'None'}\n"
                 complete_context += f"Mutation Data: {mutations if mutations else 'None'}\n\n"
 
-            # Store the context in session state for the chatbot
             st.session_state.chatbot_context = complete_context
-
-            # Display gene data
-            for gene_data in genes_data:
-                gene_info, gene_function, mutations = gene_data
-                st.subheader(f"Gene: {gene_info}")
-                st.write(f"Function: {gene_function}")
-                st.write(f"Mutations: {mutations}")
         
         else:
             st.write("Please select and submit mutation consequences to proceed.")
 
-        # Input for follow-up question to chatbot
         follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? Enter your question:")
 
-        # Handle chatbot response
         if follow_up_question:
             response = chatbot_with_groq(follow_up_question, st.session_state.chatbot_context)  # Call to chatbot function
             st.session_state.chatbot_response = response  # Store the response in session state
 
-        # Display chatbot response
         if st.session_state.chatbot_response:
             st.write(f"Chatbot Response: {st.session_state.chatbot_response}")
 
-        # Ask if the user wants to continue or generate the report
         continue_session = st.radio("Would you like to process another set of gene data?", ("Yes", "No"))
         
         if continue_session == "No":
-            # Generate report when user decides to stop
             st.session_state.report_generated = True
             st.write("You have chosen to end the session.")
+            st.write("Good Bye!")
 
             if st.session_state.genes_data:
-                # Generate the report (assumes generate_report function is defined)
                 report_content = generate_report(st.session_state.genes_data)
                 
-                # Save the generated report as a PDF
                 with open("genetic_counseling_report.pdf", "wb") as f:
                     f.write(report_content)
 
-                # Display download button for the generated report
                 st.download_button(
                     label="Download Genetic Counseling Report",
                     data=report_content,
@@ -492,9 +440,8 @@ def genetic_counseling_assistant():
                 )
 
         elif continue_session == "Yes":
-            # Allow user to process another set of gene data if needed
             st.session_state.report_generated = False
 
-# Run the Streamlit app
+
 if __name__ == "__main__":
     genetic_counseling_assistant()
