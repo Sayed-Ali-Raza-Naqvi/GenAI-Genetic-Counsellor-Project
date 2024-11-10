@@ -43,7 +43,7 @@ def landing_page():
     }
 
     .title-animation::after {
-        content: 'Welcome to Enigma';
+        content: 'Welcome to Variantor';
         display: inline-block;
         overflow: hidden;
         width: 0;
