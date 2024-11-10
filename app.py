@@ -394,10 +394,10 @@ def genetic_counseling_assistant():
         st.session_state['genes_data'] = []
     if 'chatbot_response' not in st.session_state:
         st.session_state['chatbot_response'] = None
-    if 'question_entered' not in st.session_state:
-        st.session_state['question_entered'] = False
     if 'follow_up_question_asked' not in st.session_state:
         st.session_state['follow_up_question_asked'] = False
+    if 'user_question' not in st.session_state:
+        st.session_state['user_question'] = None
 
     # Step 1: Enter gene names
     st.subheader("Step 1: Enter Gene Name")
@@ -451,35 +451,36 @@ def genetic_counseling_assistant():
 
         # Step 7: Handle follow-up questions and chatbot interaction
         if not st.session_state['follow_up_question_asked']:
-            st.subheader("Step 7: Follow-up Questions")
+            st.subheader("Step 7: Ask Follow-up Question")
             follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? (yes/no):").strip().lower()
 
             if follow_up_question == "yes":
                 st.session_state['follow_up_question_asked'] = True  # Mark that a follow-up question has been asked
-                
-                # Ask the user to input their follow-up question after "Yes"
+
+                # Show input for follow-up question and submit button
                 question = st.text_input("Please enter your follow-up question:")
-
                 if question:
-                    # Create the context based on previous gene data
-                    complete_context = "\n".join([f"Gene Information: {gene[0]}" for gene in st.session_state['genes_data']])
+                    # Store the question in session state
+                    st.session_state['user_question'] = question
+                    st.session_state['chatbot_response'] = None  # Reset previous chatbot response
+                    
+                    # Show button to submit the question
+                    if st.button("Submit Follow-up Question"):
+                        # Create the context based on previous gene data
+                        complete_context = "\n".join([f"Gene Information: {gene[0]}" for gene in st.session_state['genes_data']])
 
-                    # Process the chatbot response
-                    chatbot_response = get_chatbot_response(question, complete_context)  # Assuming get_chatbot_response is defined
+                        # Process the chatbot response
+                        chatbot_response = get_chatbot_response(question, complete_context)  # Assuming get_chatbot_response is defined
 
-                    # Handle empty or None responses from chatbot
-                    if chatbot_response is None or chatbot_response.strip() == "":
-                        st.write("Sorry, I couldn't get a response. Please try again.")
-                    else:
-                        # Save the chatbot response to session state
+                        # Store the chatbot response in session state
                         st.session_state['chatbot_response'] = chatbot_response
-                        st.write(f"Chatbot Response: {chatbot_response}")
 
         elif st.session_state['follow_up_question_asked']:
+            # Display the stored chatbot response if available
             if st.session_state['chatbot_response']:
                 st.write(f"Chatbot Response: {st.session_state['chatbot_response']}")
             else:
-                st.write("You can still ask follow-up questions at any time.")
+                st.write("Waiting for a response from the chatbot...")
 
         # Step 8: Ask if the user wants to process another set of gene data
         continue_session = st.selectbox(
@@ -492,7 +493,11 @@ def genetic_counseling_assistant():
             st.session_state['follow_up_question_asked'] = False  # Reset question asking flag
             st.session_state['genes_data'] = []  # Reset gene data
             st.session_state['chatbot_response'] = None  # Reset chatbot response
-            
+
+st.write(f"Follow-up question asked: {st.session_state['follow_up_question_asked']}")
+st.write(f"User Question: {st.session_state['user_question']}")
+st.write(f"Chatbot Response: {st.session_state['chatbot_response']}")
+
 
 # Run the Streamlit app
 if __name__ == "__main__":
