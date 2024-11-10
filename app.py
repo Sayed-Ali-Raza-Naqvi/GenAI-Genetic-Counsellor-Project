@@ -388,7 +388,7 @@ def get_chatbot_response(question, context):
 
 import streamlit as st
 
-# Assuming all necessary functions like `get_gene_info_ensembl()`, `get_gene_function()`, `get_filtered_mutation_data_ensembl()`, `generate_report()`, etc. are defined elsewhere.
+# Assuming all necessary functions like `get_gene_info_ensembl()`, `get_gene_function()`, `get_filtered_mutation_data_ensembl()`, `generate_report()` etc. are defined elsewhere.
 
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
@@ -431,6 +431,14 @@ def genetic_counseling_assistant():
 
                 genes_data.append((gene_info, gene_function, mutations))
 
+            if genes_data:
+                # Display retrieved gene information
+                for gene_data in genes_data:
+                    gene_info, gene_function, mutations = gene_data
+                    st.subheader(f"Gene: {gene_info}")
+                    st.write(f"Function: {gene_function}")
+                    st.write(f"Mutations: {mutations}")
+
                 # Build complete context for chatbot (hidden from user)
                 complete_context = ""
                 for gene_data in genes_data:
@@ -448,10 +456,17 @@ def genetic_counseling_assistant():
                     if report_button:
                         # Generate the report based on the data retrieved
                         report_content = generate_report(genes_data)
-                        # Save the generated report as a PDF
+                        # Save the generated report as a PDF (using Streamlit's download button)
                         with open("genetic_counseling_report.pdf", "wb") as f:
                             f.write(report_content)
-                        st.success("Genetic Counseling Report has been generated and saved as 'genetic_counseling_report.pdf'")
+
+                        # Display the download button
+                        st.download_button(
+                            label="Download Genetic Counseling Report",
+                            data=report_content,
+                            file_name="genetic_counseling_report.pdf",
+                            mime="application/pdf"
+                        )
 
                         # Mark the report as generated
                         st.session_state.report_generated = True
