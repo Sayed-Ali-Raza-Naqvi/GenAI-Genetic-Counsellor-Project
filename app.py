@@ -396,37 +396,38 @@ def genetic_counseling_assistant():
         st.session_state['chatbot_response'] = None
     if 'follow_up_question_asked' not in st.session_state:
         st.session_state['follow_up_question_asked'] = False
+    if 'mutation_consequences_done' not in st.session_state:
+        st.session_state['mutation_consequences_done'] = False
     if 'user_question' not in st.session_state:
         st.session_state['user_question'] = None
-    if 'mutation_consequences_done' not in st.session_state:
-        st.session_state['mutation_consequences_done'] = False  # Track if mutation consequences step is done
-    if 'next_step' not in st.session_state:
-        st.session_state['next_step'] = False  # Control whether to move to the next set of data
+    if 'genes' not in st.session_state:
+        st.session_state['genes'] = []
 
     # Step 1: Enter gene names
-    if not st.session_state['next_step']:
+    if 'gene_name' not in st.session_state:
+        st.session_state['gene_name'] = ""
+    
+    if len(st.session_state['genes']) == 0:  # Show gene entry only if genes are not entered yet
         st.subheader("Step 1: Enter Gene Name")
-        gene_name = st.text_input("Enter a gene name:", value=st.session_state.get("gene_name", ""))
-        genes = []
+        gene_name = st.text_input("Enter a gene name:", value=st.session_state['gene_name'])
         if gene_name:
-            genes = [gene_name]
-
-        # Remove duplicates if any
-        genes = list(set(genes))
-
-        if not genes:
+            st.session_state['genes'].append(gene_name)
+            st.session_state['gene_name'] = gene_name
+        else:
             st.warning("Please enter at least one gene name to proceed.")
             return
 
-        # Step 2: Mutation Limit
+    # Step 2: Mutation Limit
+    if len(st.session_state['genes']) > 0 and not st.session_state['mutation_consequences_done']:
         st.subheader("Step 2: Specify Mutation Retrieval Limit")
         mutation_limit = st.number_input(
             "Enter the number of mutations to retrieve (default 5):",
-            min_value=1, value=st.session_state.get("mutation_limit", 5)
+            min_value=1, value=5
         )
+        st.session_state['mutation_limit'] = mutation_limit
 
         # Step 3: Get valid mutation consequences from the user
-        if not st.session_state['mutation_consequences_done']:  # Check if mutation consequences have been entered
+        if not st.session_state['mutation_consequences_done']:
             st.subheader("Step 3: Specify Mutation Consequences")
             consequences = get_consequences_from_user()  # Assuming this function is defined
             st.write(f"Available mutation consequences: {', '.join(consequences)}")  # Display the consequences
@@ -443,10 +444,10 @@ def genetic_counseling_assistant():
         # Step 5: Retrieve and display gene data
         st.subheader("Step 5: Processing Gene Data...")
         genes_data = []
-        for gene in genes:
+        for gene in st.session_state['genes']:
             gene_info = get_gene_info_ensembl(gene)  # Replace with actual API call
             gene_function = get_gene_function(gene)  # Replace with actual API call
-            mutations = get_filtered_mutation_data_ensembl(gene, mutation_limit, st.session_state['consequences'])
+            mutations = get_filtered_mutation_data_ensembl(gene, st.session_state['mutation_limit'], st.session_state['consequences'])
 
             genes_data.append((gene_info, gene_function, mutations))
 
@@ -502,19 +503,18 @@ def genetic_counseling_assistant():
         )
 
         if continue_session == "Yes":
-            st.session_state['next_step'] = True  # Move to the next session
-            st.session_state['follow_up_question_asked'] = False  # Reset follow-up question flag
-            st.session_state['genes_data'] = []  # Reset gene data
+            st.session_state['genes'] = []  # Reset gene list for new input
             st.session_state['mutation_consequences_done'] = False  # Reset mutation consequences
+            st.session_state['follow_up_question_asked'] = False  # Reset question flag
             st.session_state['chatbot_response'] = None  # Reset chatbot response
             st.write("Starting a new set of gene data...")  # Inform the user
 
         elif continue_session == "No":
             st.write("Thank you for using the Genetic Counseling Assistant! Have a great day!")
-            st.session_state['follow_up_question_asked'] = False  # Reset question asking flag
-            st.session_state['genes_data'] = []  # Reset gene data
-            st.session_state['chatbot_response'] = None  # Reset chatbot response
+            st.session_state['genes'] = []  # Reset gene list for new session
             st.session_state['mutation_consequences_done'] = False  # Reset mutation consequences
+            st.session_state['follow_up_question_asked'] = False  # Reset question flag
+            st.session_state['chatbot_response'] = None  # Reset chatbot response
 
             
 
