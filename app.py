@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 #     raise ValueError("API key not found. Make sure GROQ_API_KEY is set in the .env file.")
 
 # Initialize the client
-client = Groq(api_key=GROQ_API_KEY = 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)
+client = Groq(api_key=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)
 
 def get_gene_info_ensembl(gene_name):
     """
