@@ -6,3 +6,4 @@ PyMuPDF
 groq==0.1.0
 python-docx==0.2.5
 PyPDF2==1.26.0
+thinc==8.0.0
