@@ -386,33 +386,6 @@ def get_chatbot_response(question, context):
     return chat_completion.choices[0].message.content
     
 
-import streamlit as st
-
-# Sample helper functions (replace with your actual functions)
-def get_chatbot_response(question, context):
-    # Simulate a chatbot response for the sake of debugging
-    return f"Chatbot response to: {question}"
-
-def get_consequences_from_user():
-    # Dummy function, replace with your actual implementation
-    return ["consequence1", "consequence2"]
-
-def get_gene_info_ensembl(gene):
-    # Dummy function, replace with your actual implementation
-    return f"Info for gene: {gene}"
-
-def get_gene_function(gene):
-    # Dummy function, replace with your actual implementation
-    return f"Function for gene: {gene}"
-
-def get_filtered_mutation_data_ensembl(gene, limit, consequences):
-    # Dummy function, replace with your actual implementation
-    return f"Mutations for gene: {gene}"
-
-def generate_report(genes_data):
-    # Dummy function, replace with your actual implementation
-    return f"Report for {len(genes_data)} genes."
-
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
 
@@ -450,6 +423,10 @@ def genetic_counseling_assistant():
     # Step 3: Get valid mutation consequences from the user
     st.subheader("Step 3: Specify Mutation Consequences")
     consequences = get_consequences_from_user()  # Assuming this function is defined
+    st.write(f"Available mutation consequences: {', '.join(consequences)}")  # Display the consequences
+    
+    # Make sure consequences are stored in session state
+    st.session_state['consequences'] = consequences
 
     # Step 4: Add button to process further
     if st.button("Process Gene Data"):
@@ -524,7 +501,6 @@ def genetic_counseling_assistant():
             st.session_state['follow_up_question_asked'] = False  # Reset question asking flag
             st.session_state['genes_data'] = []  # Reset gene data
             st.session_state['chatbot_response'] = None  # Reset chatbot response
-
 
 # Run the Streamlit app
 if __name__ == "__main__":
