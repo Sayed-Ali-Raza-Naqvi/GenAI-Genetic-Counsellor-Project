@@ -1,3 +1,5 @@
+import os
+import 
 import streamlit as st
 import requests
 from io import BytesIO
@@ -8,10 +10,17 @@ import fitz
 from groq import Groq
 from docx import Document
 import PyPDF2
+from dotenv import load_dotenv
 
 
-os.environ["GROQ_API_KEY"] = "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"
+load_dotenv()
+
+# Get the API key securely from the environment
 api_key = os.getenv("GROQ_API_KEY")
+if not api_key:
+    raise ValueError("API key not found. Make sure GROQ_API_KEY is set in the .env file.")
+
+# Initialize the client
 client = Groq(api_key=api_key)
 
 def get_gene_info_ensembl(gene_name):
