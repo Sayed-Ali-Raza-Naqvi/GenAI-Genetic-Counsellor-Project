@@ -1,5 +1,4 @@
 import os
-import 
 import streamlit as st
 import requests
 from io import BytesIO
