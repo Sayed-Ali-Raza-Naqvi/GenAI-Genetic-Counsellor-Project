@@ -386,9 +386,10 @@ def get_chatbot_response(question, context):
     return chat_completion.choices[0].message.content
     
 
+
 import streamlit as st
 
-# Assuming all your necessary functions like extract_valid_genes_from_document(), get_consequences_from_user(), etc. are defined elsewhere.
+# Assuming all necessary functions like `get_gene_info_ensembl()`, `get_gene_function()`, `get_filtered_mutation_data_ensembl()`, `generate_report()`, etc. are defined elsewhere.
 
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
@@ -405,52 +406,66 @@ def genetic_counseling_assistant():
         # Get valid mutation consequences from user
         consequences = get_consequences_from_user()
 
-        genes_data = []
+        # Add a button for submitting the mutation consequences
+        submit_consequences_button = st.button("Submit Mutation Consequences")
 
-        # Retrieve gene data for all genes
-        for gene in genes:
-            gene_info = get_gene_info_ensembl(gene)
-            gene_function = get_gene_function(gene)
-            mutations = get_filtered_mutation_data_ensembl(gene, mutation_limit, consequences)
+        # Handle button click for submitting consequences
+        if submit_consequences_button:
+            genes_data = []
 
-            genes_data.append((gene_info, gene_function, mutations))
+            # Retrieve gene data for all genes
+            for gene in genes:
+                gene_info = get_gene_info_ensembl(gene)
+                gene_function = get_gene_function(gene)
+                mutations = get_filtered_mutation_data_ensembl(gene, mutation_limit, consequences)
 
-        if genes_data:
-            report_button = st.button("Generate Genetic Counseling Report")
-            if report_button:
-                report_content = generate_report(genes_data)
-                with open("genetic_counseling_report.pdf", "wb") as f:
-                    f.write(report_content)
-                st.success("Genetic Counseling Report has been generated and saved as 'genetic_counseling_report.pdf'")
+                genes_data.append((gene_info, gene_function, mutations))
 
-            # Display gene info
-            for gene_data in genes_data:
-                gene_info, gene_function, mutations = gene_data
-                st.subheader(f"Gene: {gene_info}")
-                st.write(f"Function: {gene_function}")
-                st.write(f"Mutations: {mutations}")
+            if genes_data:
+                # Button to generate the report
+                report_button = st.button("Generate Genetic Counseling Report")
+                if report_button:
+                    # Generate the report based on the data retrieved
+                    report_content = generate_report(genes_data)
+                    # Save the generated report as a PDF
+                    with open("genetic_counseling_report.pdf", "wb") as f:
+                        f.write(report_content)
+                    st.success("Genetic Counseling Report has been generated and saved as 'genetic_counseling_report.pdf'")
 
-            # Chatbot interaction
-            follow_up_question = st.radio("Do you have any follow-up questions related to genetic counseling?", ("Yes", "No"))
-            
-            if follow_up_question == "Yes":
-                question = st.text_input("Please enter your follow-up question:")
-                if question:
-                    # Only call chatbot once with the full context and the current question
-                    complete_context = "".join(
-                        [f"Gene Information: {gene_info if gene_info else 'None'}\n"
-                         f"Gene Function: {gene_function if gene_function else 'None'}\n"
-                         f"Mutation Data: {mutations if mutations else 'None'}\n\n" 
-                         for gene_info, gene_function, mutations in genes_data]
-                    )
-                    response = chatbot_with_groq(question, complete_context)
-                    st.write(f"Chatbot Response: {response}")
+
+                # Build complete context for chatbot (hidden from user)
+                complete_context = ""
+                for gene_data in genes_data:
+                    gene_info, gene_function, mutations = gene_data
+                    complete_context += f"Gene Information: {gene_info if gene_info else 'None'}\n"
+                    complete_context += f"Gene Function: {gene_function if gene_function else 'None'}\n"
+                    complete_context += f"Mutation Data: {mutations if mutations else 'None'}\n\n"
+
+                # Chatbot interaction for follow-up questions
+                continue_asking = True
+                while continue_asking:
+                    follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? Enter your question or leave blank to stop:")
+
+                    if follow_up_question:
+                        # Get the chatbot response based on the question and context
+                        response = chatbot_with_groq(follow_up_question, complete_context)
+                        st.write(f"Chatbot Response: {response}")
+                    else:
+                        continue_asking = False
+                        st.write("Thank you for using the Genetic Counseling Assistant!")
+
+        else:
+            st.write("Please select and submit mutation consequences to proceed.")
 
         # Ask if the user wants to process another set of gene data
         continue_session = st.radio("Would you like to process another set of gene data?", ("Yes", "No"))
         if continue_session == "No":
             st.write("Goodbye!")
-            
+
+# Run the Streamlit app
+if __name__ == "__main__":
+    genetic_counseling_assistant()
+           
 
 # Run the Streamlit app
 if __name__ == "__main__":
