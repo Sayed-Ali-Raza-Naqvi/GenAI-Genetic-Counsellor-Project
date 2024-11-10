@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import spacy
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -9,17 +8,7 @@ import fitz
 from groq import Groq
 from docx import Document
 import PyPDF2
-from spacy import cli
 
-# Check if model is installed, if not, install it
-try:
-    nlp = spacy.load("en_ner_bionlp13cg_md")
-except OSError:
-    print("Model not found, installing...")
-    cli.download("en_ner_bionlp13cg_md")
-    nlp = spacy.load("en_ner_bionlp13cg_md")
-
-# nlp = spacy.load("en_ner_bionlp13cg_md")
 
 os.environ["GROQ_API_KEY"] = "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"
 api_key = os.getenv("GROQ_API_KEY")
@@ -158,27 +147,6 @@ def get_filtered_mutation_data_ensembl(gene_name, mutation_limit=5, mutation_typ
         return "Gene information not found."
 
 
-def extract_text_from_pdf(pdf_content):
-    doc = fitz.open(stream=pdf_content, filetype="pdf")
-    text = ""
-    for page in doc:
-        text += page.get_text()
-    return text
-
-
-def extract_entities(text):
-    doc = nlp(text)
-    entities = {
-        "genes": [],
-    }
-
-    for ent in doc.ents:
-        if ent.label_ == "GENE_OR_GENE_PRODUCT":
-            entities["genes"].append(ent.text)
-
-    return entities
-
-
 def chatbot_with_groq(question, context):
     chat_completion = client.chat.completions.create(
         messages=[
@@ -189,51 +157,6 @@ def chatbot_with_groq(question, context):
         model="llama3-8b-8192",
     )
     return chat_completion.choices[0].message.content
-
-
-def extract_genes_from_txt(file_path):
-    """
-    Extract genes from a plain text (.txt) file.
-    """
-    with open(file_path, "r") as file:
-        text = file.read()
-    entities = extract_entities(text)
-    return entities["genes"]
-
-
-def extract_genes_from_pdf(file_path):
-    with open(file_path, "rb") as f:
-        reader = PyPDF2.PdfReader(f)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text()
-        entities = extract_entities(text)
-        return entities["genes"]
-
-
-def extract_genes_from_docx(file_path):
-    doc = Document(file_path)
-    text = ""
-    for para in doc.paragraphs:
-        text += para.text
-    entities = extract_entities(text)
-    return entities["genes"]
-
-
-def extract_genes_from_document(file_path):
-    """
-    Extract genes from a document based on its file extension.
-    Supports PDF, DOCX, and TXT files.
-    """
-    if file_path.endswith(".pdf"):
-        return extract_genes_from_pdf(file_path)
-    elif file_path.endswith(".docx"):
-        return extract_genes_from_docx(file_path)
-    elif file_path.endswith(".txt"):
-        return extract_genes_from_txt(file_path)
-    else:
-        print("Unsupported file type. Please upload a PDF, DOCX, or TXT file.")
-        return []
 
 
 def wrap_text(text, width, font_size, font_name="Helvetica", x_offset=100):
@@ -421,18 +344,6 @@ def generate_report(genes_data):
     return pdf_content
 
 
-def extract_valid_genes_from_document(file_path):
-    extracted_genes = extract_genes_from_document(file_path)
-    valid_genes = []
-
-    for gene in extracted_genes:
-        gene_info = get_gene_info_ensembl(gene)
-        if gene_info:
-            valid_genes.append(gene)
-
-    return valid_genes
-
-
 # Simulating the same behavior of the get_consequences_from_user function as a streamlit input
 def get_consequences_from_user():
     so_terms = [
@@ -458,56 +369,70 @@ def get_consequences_from_user():
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
 
-    # Step 1: File upload or enter gene name
-    st.subheader("Step 1: Upload a File or Enter Gene Name")
-    
-    file = st.file_uploader("Upload a PDF, DOCX, or TXT file with gene names", type=["pdf", "docx", "txt"])
+    # Step 1: Enter gene names
+    st.subheader("Step 1: Enter Gene Name")
+    gene_name = st.text_input("Enter a gene name:")
     genes = []
-    if file:
-        genes = extract_valid_genes_from_document(file)
-        st.write(f"Extracted Genes: {genes}")
-
-    gene_name = st.text_input("Or, enter a gene name:")
     if gene_name:
         genes = [gene_name]
 
-    genes = list(set(genes))  # Remove duplicates
+    # Remove duplicates if any
+    genes = list(set(genes))
+
+    if not genes:
+        st.warning("Please enter at least one gene name to proceed.")
+        return
 
     # Step 2: Mutation Limit
-    mutation_limit = st.number_input("Enter the number of mutations to retrieve (default 5)", min_value=1, value=5)
+    st.subheader("Step 2: Specify Mutation Retrieval Limit")
+    mutation_limit = st.number_input(
+        "Enter the number of mutations to retrieve (default 5):",
+        min_value=1, value=5
+    )
 
     # Step 3: Get valid mutation consequences from the user
+    st.subheader("Step 3: Specify Mutation Consequences")
     consequences = get_consequences_from_user()
 
-    # Step 4: Process the gene data
+    # Step 4: Retrieve and display gene data
+    st.subheader("Step 4: Process Gene Data")
     genes_data = []
     for gene in genes:
-        gene_info = "Gene Info Placeholder"  # Replace with actual logic to get gene info
-        gene_function = "Gene Function Placeholder"  # Replace with actual logic to get gene function
-        mutations = "Mutations Placeholder"  # Replace with actual mutation data retrieval logic
+        gene_info = get_gene_info_ensembl(gene)  # Replace with actual API call
+        gene_function = get_gene_function(gene)  # Replace with actual API call
+        mutations = get_filtered_mutation_data_ensembl(gene, mutation_limit, consequences)
+
         genes_data.append((gene_info, gene_function, mutations))
 
-    # Step 5: Display the results and download the report
+    # Step 5: Generate report and allow download
     if genes_data:
-        report_content = generate_report(genes_data)  # Assuming generate_report function is defined
-        st.download_button("Download Genetic Counseling Report", report_content, file_name="genetic_counseling_report.pdf", mime="application/pdf")
+        report_content = generate_report(genes_data)  # Assuming generate_report is defined
+        st.download_button(
+            "Download Genetic Counseling Report",
+            report_content,
+            file_name="genetic_counseling_report.pdf",
+            mime="application/pdf"
+        )
 
     # Step 6: Handle follow-up questions and chatbot interaction
     st.subheader("Step 6: Ask Follow-up Questions")
-    follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? (yes/no)")
-
+    follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? (yes/no):")
+    
     if follow_up_question.lower() == "yes":
         question = st.text_input("Please enter your follow-up question:")
         if question:
-            complete_context = "\n".join([f"Gene: {gene[0]}" for gene in genes_data])
+            complete_context = "\n".join([
+                f"Gene Information: {gene[0]}" for gene in genes_data
+            ])
             chatbot_response = get_chatbot_response(question, complete_context)  # Assuming get_chatbot_response is defined
             st.write(f"Chatbot Response: {chatbot_response}")
 
     # Step 7: Ask if the user wants to process another set of gene data
-    continue_session = st.selectbox("Would you like to process another set of gene data?", options=["Yes", "No"])
+    continue_session = st.selectbox(
+        "Would you like to process another set of gene data?", options=["Yes", "No"]
+    )
     if continue_session == "No":
         st.write("Thank you for using the Genetic Counseling Assistant! Have a great day!")
-
 
 # Run the Streamlit app
 if __name__ == "__main__":
