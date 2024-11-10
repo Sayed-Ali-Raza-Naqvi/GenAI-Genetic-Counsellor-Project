@@ -374,6 +374,18 @@ def get_consequences_from_user():
     return consequences_input
 
 
+def get_chatbot_response(question, context):
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {"role": "system", "content": "You are a helpful genetic counseling assistant."},
+            {"role": "user", "content": question},
+            {"role": "system", "content": f"Context: {context}"}
+        ],
+        model="llama3-8b-8192",
+    )
+    return chat_completion.choices[0].message.content
+    
+
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
 
@@ -382,7 +394,8 @@ def genetic_counseling_assistant():
     gene_name = st.text_input("Enter a gene name:")
     genes = []
     if gene_name:
-        genes = [gene_name]
+        if st.button("Add Gene"):
+            genes = [gene_name]
 
     # Remove duplicates if any
     genes = list(set(genes))
@@ -400,47 +413,50 @@ def genetic_counseling_assistant():
 
     # Step 3: Get valid mutation consequences from the user
     st.subheader("Step 3: Specify Mutation Consequences")
-    consequences = get_consequences_from_user()
+    consequences = get_consequences_from_user()  # Assuming this function is defined
 
-    # Step 4: Retrieve and display gene data
-    st.subheader("Step 4: Process Gene Data")
-    genes_data = []
-    for gene in genes:
-        gene_info = get_gene_info_ensembl(gene)  # Replace with actual API call
-        gene_function = get_gene_function(gene)  # Replace with actual API call
-        mutations = get_filtered_mutation_data_ensembl(gene, mutation_limit, consequences)
+    # Button to confirm and proceed with gene data processing
+    if st.button("Process Gene Data"):
+        # Step 4: Retrieve and display gene data
+        st.subheader("Step 4: Process Gene Data")
+        genes_data = []
+        for gene in genes:
+            gene_info = get_gene_info_ensembl(gene)  # Replace with actual API call
+            gene_function = get_gene_function(gene)  # Replace with actual API call
+            mutations = get_filtered_mutation_data_ensembl(gene, mutation_limit, consequences)
 
-        genes_data.append((gene_info, gene_function, mutations))
+            genes_data.append((gene_info, gene_function, mutations))
 
-    # Step 5: Generate report and allow download
-    if genes_data:
-        report_content = generate_report(genes_data)  # Assuming generate_report is defined
-        st.download_button(
-            "Download Genetic Counseling Report",
-            report_content,
-            file_name="genetic_counseling_report.pdf",
-            mime="application/pdf"
+        # Step 5: Generate report and allow download
+        if genes_data:
+            report_content = generate_report(genes_data)  # Assuming generate_report is defined
+            st.download_button(
+                "Download Genetic Counseling Report",
+                report_content,
+                file_name="genetic_counseling_report.pdf",
+                mime="application/pdf"
+            )
+
+        # Step 6: Handle follow-up questions and chatbot interaction
+        st.subheader("Step 6: Ask Follow-up Questions")
+        follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? (yes/no):")
+        
+        if follow_up_question.lower() == "yes":
+            question = st.text_input("Please enter your follow-up question:")
+            if question and st.button("Get Chatbot Response"):
+                complete_context = "\n".join([
+                    f"Gene Information: {gene[0]}" for gene in genes_data
+                ])
+                chatbot_response = get_chatbot_response(question, complete_context)  # Assuming get_chatbot_response is defined
+                st.write(f"Chatbot Response: {chatbot_response}")
+
+        # Step 7: Ask if the user wants to process another set of gene data
+        continue_session = st.selectbox(
+            "Would you like to process another set of gene data?", options=["Yes", "No"]
         )
+        if continue_session == "No":
+            st.write("Thank you for using the Genetic Counseling Assistant! Have a great day!")
 
-    # Step 6: Handle follow-up questions and chatbot interaction
-    st.subheader("Step 6: Ask Follow-up Questions")
-    follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? (yes/no):")
-    
-    if follow_up_question.lower() == "yes":
-        question = st.text_input("Please enter your follow-up question:")
-        if question:
-            complete_context = "\n".join([
-                f"Gene Information: {gene[0]}" for gene in genes_data
-            ])
-            chatbot_response = get_chatbot_response(question, complete_context)  # Assuming get_chatbot_response is defined
-            st.write(f"Chatbot Response: {chatbot_response}")
-
-    # Step 7: Ask if the user wants to process another set of gene data
-    continue_session = st.selectbox(
-        "Would you like to process another set of gene data?", options=["Yes", "No"]
-    )
-    if continue_session == "No":
-        st.write("Thank you for using the Genetic Counseling Assistant! Have a great day!")
 
 # Run the Streamlit app
 if __name__ == "__main__":
