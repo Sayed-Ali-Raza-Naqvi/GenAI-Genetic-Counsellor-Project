@@ -386,9 +386,15 @@ def get_chatbot_response(question, context):
     return chat_completion.choices[0].message.content
     
 
-
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
+
+    # Check if 'chatbot_context' exists in session state, initialize if not
+    if 'chatbot_context' not in st.session_state:
+        st.session_state.chatbot_context = ""
+
+    if 'chatbot_response' not in st.session_state:
+        st.session_state.chatbot_response = ""
 
     # Direct gene name input
     gene_name = st.text_input("Enter a gene name:", key="gene_name_input")
@@ -405,10 +411,10 @@ def genetic_counseling_assistant():
         # Add a button for submitting the mutation consequences
         submit_consequences_button = st.button("Submit Mutation Consequences", key="submit_consequences_button")
 
+        genes_data = []
+
         # Handle button click for submitting consequences
         if submit_consequences_button:
-            genes_data = []
-
             # Retrieve gene data for all genes
             for gene in genes:
                 gene_info = get_gene_info_ensembl(gene)
@@ -428,13 +434,6 @@ def genetic_counseling_assistant():
                         f.write(report_content)
                     st.success("Genetic Counseling Report has been generated and saved as 'genetic_counseling_report.pdf'")
 
-                # Display retrieved gene information
-                for gene_data in genes_data:
-                    gene_info, gene_function, mutations = gene_data
-                    st.subheader(f"Gene: {gene_info}")
-                    st.write(f"Function: {gene_function}")
-                    st.write(f"Mutations: {mutations}")
-
                 # Build complete context for chatbot (hidden from user)
                 complete_context = ""
                 for gene_data in genes_data:
@@ -443,21 +442,22 @@ def genetic_counseling_assistant():
                     complete_context += f"Gene Function: {gene_function if gene_function else 'None'}\n"
                     complete_context += f"Mutation Data: {mutations if mutations else 'None'}\n\n"
 
-                # Chatbot interaction for follow-up questions
-                continue_asking = True
-                while continue_asking:
-                    follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? Enter your question or leave blank to stop:", key="follow_up_question_input")
-
-                    if follow_up_question:
-                        # Get the chatbot response based on the question and context
-                        response = chatbot_with_groq(follow_up_question, complete_context)
-                        st.write(f"Chatbot Response: {response}")
-                    else:
-                        continue_asking = False
-                        st.write("Thank you for using the Genetic Counseling Assistant!")
+                # Save the complete context in session state for chatbot
+                st.session_state.chatbot_context = complete_context
 
         else:
             st.write("Please select and submit mutation consequences to proceed.")
+
+        # Handle follow-up question
+        follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? Enter your question or leave blank to stop:", key="follow_up_question_input")
+
+        if follow_up_question:
+            # Call the chatbot function (assuming chatbot_with_groq is defined)
+            response = chatbot_with_groq(follow_up_question, st.session_state.chatbot_context)
+            st.session_state.chatbot_response = response
+
+        if st.session_state.chatbot_response:
+            st.write(f"Chatbot Response: {st.session_state.chatbot_response}")
 
         # Ask if the user wants to process another set of gene data
         continue_session = st.radio("Would you like to process another set of gene data?", ("Yes", "No"), key="continue_session_radio")
