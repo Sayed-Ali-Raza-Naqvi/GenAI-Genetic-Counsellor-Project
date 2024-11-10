@@ -400,19 +400,19 @@ def genetic_counseling_assistant():
         st.session_state.report_generated = False  # Track whether the report has been generated
 
     # Direct gene name input
-    gene_name = st.text_input("Enter a gene name:", key="gene_name_input")
+    gene_name = st.text_input("Enter a gene name:", key="gene_name_input_1")
 
     if gene_name:
         genes = [gene_name]
 
         # Get mutation limit from user
-        mutation_limit = st.number_input("Enter the number of mutations to retrieve (default 5):", min_value=1, value=5, key="mutation_limit_input")
+        mutation_limit = st.number_input("Enter the number of mutations to retrieve (default 5):", min_value=1, value=5, key="mutation_limit_input_1")
 
         # Get valid mutation consequences from user
         consequences = get_consequences_from_user()
 
         # Add a button for submitting the mutation consequences
-        submit_consequences_button = st.button("Submit Mutation Consequences", key="submit_consequences_button")
+        submit_consequences_button = st.button("Submit Mutation Consequences", key="submit_consequences_button_1")
 
         genes_data = []
 
@@ -447,7 +447,7 @@ def genetic_counseling_assistant():
 
                 # Add button to generate report
                 if not st.session_state.report_generated:
-                    report_button = st.button("Generate Genetic Counseling Report", key="generate_report_button")
+                    report_button = st.button("Generate Genetic Counseling Report", key="generate_report_button_1")
                     if report_button:
                         # Generate the report based on the data retrieved
                         report_content = generate_report(genes_data)
@@ -460,7 +460,7 @@ def genetic_counseling_assistant():
                         st.session_state.report_generated = True
 
                 # Chatbot interaction for follow-up questions
-                follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? Enter your question or leave blank to stop:", key="follow_up_question_input")
+                follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? Enter your question or leave blank to stop:", key="follow_up_question_input_1")
 
                 if follow_up_question:
                     # Call the chatbot function (assuming chatbot_with_groq is defined)
@@ -474,15 +474,9 @@ def genetic_counseling_assistant():
             st.write("Please select and submit mutation consequences to proceed.")
 
         # Ask if the user wants to process another set of gene data
-        continue_session = st.radio("Would you like to process another set of gene data?", ("Yes", "No"), key="continue_session_radio")
+        continue_session = st.radio("Would you like to process another set of gene data?", ("Yes", "No"), key="continue_session_radio_1")
         if continue_session == "No":
             st.write("Goodbye!")
-
-
-# Run the Streamlit app
-if __name__ == "__main__":
-    genetic_counseling_assistant()
-
 
 
 # Run the Streamlit app
