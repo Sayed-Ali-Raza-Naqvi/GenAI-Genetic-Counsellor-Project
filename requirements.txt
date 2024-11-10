@@ -1,3 +1,5 @@
+scipy
+scikit-learn
 requests
 spacy
 reportlab
