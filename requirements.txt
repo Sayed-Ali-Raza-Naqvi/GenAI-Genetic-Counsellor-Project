@@ -1,5 +1,3 @@
-scipy
-scikit-learn
 requests
 spacy
 reportlab
@@ -7,7 +5,4 @@ PyMuPDF
 groq
 python-docx
 PyPDF2
-scikit-learn
-spacy-transformers
-scispacy
 https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.1/en_ner_bionlp13cg_md-0.5.1.tar.gz
