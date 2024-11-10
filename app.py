@@ -386,6 +386,10 @@ def get_chatbot_response(question, context):
     return chat_completion.choices[0].message.content
     
 
+import streamlit as st
+
+# Assuming all necessary functions like `get_gene_info_ensembl()`, `get_gene_function()`, `get_filtered_mutation_data_ensembl()`, `generate_report()`, etc. are defined elsewhere.
+
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
 
@@ -402,6 +406,7 @@ def genetic_counseling_assistant():
     # Direct gene name input
     gene_name = st.text_input("Enter a gene name:", key="gene_name_input_1")
 
+    # Only proceed if the user has entered a gene name
     if gene_name:
         genes = [gene_name]
 
@@ -426,14 +431,6 @@ def genetic_counseling_assistant():
 
                 genes_data.append((gene_info, gene_function, mutations))
 
-            if genes_data:
-                # Display retrieved gene information
-                for gene_data in genes_data:
-                    gene_info, gene_function, mutations = gene_data
-                    st.subheader(f"Gene: {gene_info}")
-                    st.write(f"Function: {gene_function}")
-                    st.write(f"Mutations: {mutations}")
-
                 # Build complete context for chatbot (hidden from user)
                 complete_context = ""
                 for gene_data in genes_data:
@@ -445,7 +442,7 @@ def genetic_counseling_assistant():
                 # Save the complete context in session state for chatbot
                 st.session_state.chatbot_context = complete_context
 
-                # Add button to generate report
+                # Only show the "Generate Genetic Counseling Report" button if the report has not been generated yet
                 if not st.session_state.report_generated:
                     report_button = st.button("Generate Genetic Counseling Report", key="generate_report_button_1")
                     if report_button:
@@ -477,6 +474,9 @@ def genetic_counseling_assistant():
         continue_session = st.radio("Would you like to process another set of gene data?", ("Yes", "No"), key="continue_session_radio_1")
         if continue_session == "No":
             st.write("Goodbye!")
+        elif continue_session == "Yes":
+            # Reset report generation state for new session
+            st.session_state.report_generated = False  # Allow report generation again if the user chooses to start a new session
 
 
 # Run the Streamlit app
