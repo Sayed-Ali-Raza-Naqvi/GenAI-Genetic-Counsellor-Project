@@ -431,10 +431,9 @@ def genetic_counseling_assistant():
         # Store consequences in session state
         st.session_state['consequences'] = consequences
 
-        # Set mutation consequences done to True after user has entered them
+        # Button to mark mutation consequences as done
         if st.button("Next"):
-            st.session_state['mutation_consequences_done'] = True
-            st.experimental_rerun()  # Forces the app to refresh and proceed
+            st.session_state['mutation_consequences_done'] = True  # Mark that this step is done
 
     # Step 4: Add button to process further if mutation consequences are done
     if st.session_state['mutation_consequences_done']:
@@ -505,6 +504,8 @@ def genetic_counseling_assistant():
             st.session_state['follow_up_question_asked'] = False  # Reset question asking flag
             st.session_state['genes_data'] = []  # Reset gene data
             st.session_state['chatbot_response'] = None  # Reset chatbot response
+            
+
 # Run the Streamlit app
 if __name__ == "__main__":
     genetic_counseling_assistant()
