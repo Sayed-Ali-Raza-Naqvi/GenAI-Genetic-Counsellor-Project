@@ -9,7 +9,6 @@ import fitz
 from groq import Groq
 from docx import Document
 import PyPDF2
-from google.colab import files
 
 nlp = spacy.load("en_ner_bionlp13cg_md")
 
