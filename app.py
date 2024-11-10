@@ -404,15 +404,11 @@ def genetic_counseling_assistant():
         st.session_state['genes'] = []
 
     # Step 1: Enter gene names
-    if 'gene_name' not in st.session_state:
-        st.session_state['gene_name'] = ""
-    
     if len(st.session_state['genes']) == 0:  # Show gene entry only if genes are not entered yet
         st.subheader("Step 1: Enter Gene Name")
-        gene_name = st.text_input("Enter a gene name:", value=st.session_state['gene_name'])
+        gene_name = st.text_input("Enter a gene name:", value="")
         if gene_name:
             st.session_state['genes'].append(gene_name)
-            st.session_state['gene_name'] = gene_name
         else:
             st.warning("Please enter at least one gene name to proceed.")
             return
@@ -439,10 +435,10 @@ def genetic_counseling_assistant():
             if st.button("Next"):
                 st.session_state['mutation_consequences_done'] = True  # Mark that this step is done
 
-    # Step 4: Add button to process further if mutation consequences are done
+    # Step 4: Gene Data Processing (done once mutation consequences are finished)
     if st.session_state['mutation_consequences_done']:
         # Step 5: Retrieve and display gene data
-        st.subheader("Step 5: Processing Gene Data...")
+        st.subheader("Step 4: Processing Gene Data...")
         genes_data = []
         for gene in st.session_state['genes']:
             gene_info = get_gene_info_ensembl(gene)  # Replace with actual API call
@@ -515,7 +511,6 @@ def genetic_counseling_assistant():
             st.session_state['mutation_consequences_done'] = False  # Reset mutation consequences
             st.session_state['follow_up_question_asked'] = False  # Reset question flag
             st.session_state['chatbot_response'] = None  # Reset chatbot response
-
             
 
 # Run the Streamlit app
