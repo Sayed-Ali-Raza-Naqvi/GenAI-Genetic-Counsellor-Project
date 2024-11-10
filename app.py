@@ -404,38 +404,39 @@ def genetic_counseling_assistant():
         st.session_state['next_step'] = False  # Control whether to move to the next set of data
 
     # Step 1: Enter gene names
-    st.subheader("Step 1: Enter Gene Name")
-    gene_name = st.text_input("Enter a gene name:", value=st.session_state.get("gene_name", ""))
-    genes = []
-    if gene_name:
-        genes = [gene_name]
+    if not st.session_state['next_step']:
+        st.subheader("Step 1: Enter Gene Name")
+        gene_name = st.text_input("Enter a gene name:", value=st.session_state.get("gene_name", ""))
+        genes = []
+        if gene_name:
+            genes = [gene_name]
 
-    # Remove duplicates if any
-    genes = list(set(genes))
+        # Remove duplicates if any
+        genes = list(set(genes))
 
-    if not genes:
-        st.warning("Please enter at least one gene name to proceed.")
-        return
+        if not genes:
+            st.warning("Please enter at least one gene name to proceed.")
+            return
 
-    # Step 2: Mutation Limit
-    st.subheader("Step 2: Specify Mutation Retrieval Limit")
-    mutation_limit = st.number_input(
-        "Enter the number of mutations to retrieve (default 5):",
-        min_value=1, value=st.session_state.get("mutation_limit", 5)
-    )
+        # Step 2: Mutation Limit
+        st.subheader("Step 2: Specify Mutation Retrieval Limit")
+        mutation_limit = st.number_input(
+            "Enter the number of mutations to retrieve (default 5):",
+            min_value=1, value=st.session_state.get("mutation_limit", 5)
+        )
 
-    # Step 3: Get valid mutation consequences from the user
-    if not st.session_state['mutation_consequences_done']:  # Check if mutation consequences have been entered
-        st.subheader("Step 3: Specify Mutation Consequences")
-        consequences = get_consequences_from_user()  # Assuming this function is defined
-        st.write(f"Available mutation consequences: {', '.join(consequences)}")  # Display the consequences
+        # Step 3: Get valid mutation consequences from the user
+        if not st.session_state['mutation_consequences_done']:  # Check if mutation consequences have been entered
+            st.subheader("Step 3: Specify Mutation Consequences")
+            consequences = get_consequences_from_user()  # Assuming this function is defined
+            st.write(f"Available mutation consequences: {', '.join(consequences)}")  # Display the consequences
 
-        # Store consequences in session state
-        st.session_state['consequences'] = consequences
+            # Store consequences in session state
+            st.session_state['consequences'] = consequences
 
-        # Button to mark mutation consequences as done
-        if st.button("Next"):
-            st.session_state['mutation_consequences_done'] = True  # Mark that this step is done
+            # Button to mark mutation consequences as done
+            if st.button("Next"):
+                st.session_state['mutation_consequences_done'] = True  # Mark that this step is done
 
     # Step 4: Add button to process further if mutation consequences are done
     if st.session_state['mutation_consequences_done']:
@@ -505,13 +506,16 @@ def genetic_counseling_assistant():
             st.session_state['follow_up_question_asked'] = False  # Reset follow-up question flag
             st.session_state['genes_data'] = []  # Reset gene data
             st.session_state['mutation_consequences_done'] = False  # Reset mutation consequences
-            st.experimental_rerun()  # Force the app to rerun
+            st.session_state['chatbot_response'] = None  # Reset chatbot response
+            st.write("Starting a new set of gene data...")  # Inform the user
 
         elif continue_session == "No":
             st.write("Thank you for using the Genetic Counseling Assistant! Have a great day!")
             st.session_state['follow_up_question_asked'] = False  # Reset question asking flag
             st.session_state['genes_data'] = []  # Reset gene data
             st.session_state['chatbot_response'] = None  # Reset chatbot response
+            st.session_state['mutation_consequences_done'] = False  # Reset mutation consequences
+
             
 
 # Run the Streamlit app
