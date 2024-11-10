@@ -9,10 +9,17 @@ import fitz
 from groq import Groq
 from docx import Document
 import PyPDF2
-import subprocess
-import sys
+from spacy import cli
 
-nlp = spacy.load("en_ner_bionlp13cg_md")
+# Check if model is installed, if not, install it
+try:
+    nlp = spacy.load("en_ner_bionlp13cg_md")
+except OSError:
+    print("Model not found, installing...")
+    cli.download("en_ner_bionlp13cg_md")
+    nlp = spacy.load("en_ner_bionlp13cg_md")
+
+# nlp = spacy.load("en_ner_bionlp13cg_md")
 
 os.environ["GROQ_API_KEY"] = "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"
 api_key = os.getenv("GROQ_API_KEY")
