@@ -386,22 +386,6 @@ def get_chatbot_response(question, context):
     return chat_completion.choices[0].message.content
     
 
-import streamlit as st
-
-# Assuming these functions are already defined in your app
-# def get_consequences_from_user():
-#     pass
-# def get_gene_info_ensembl(gene):
-#     pass
-# def get_gene_function(gene):
-#     pass
-# def get_filtered_mutation_data_ensembl(gene, mutation_limit, consequences):
-#     pass
-# def generate_report(genes_data):
-#     pass
-# def get_chatbot_response(question, context):
-#     pass
-
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
 
@@ -410,6 +394,8 @@ def genetic_counseling_assistant():
         st.session_state['genes_data'] = []
     if 'chatbot_response' not in st.session_state:
         st.session_state['chatbot_response'] = None
+    if 'question_entered' not in st.session_state:
+        st.session_state['question_entered'] = False
 
     # Step 1: Enter gene names
     st.subheader("Step 1: Enter Gene Name")
@@ -465,17 +451,23 @@ def genetic_counseling_assistant():
         st.subheader("Step 6: Ask Follow-up Questions")
         follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? (yes/no):")
         
-        if follow_up_question.lower() == "yes":
+        if follow_up_question.lower() == "yes" and not st.session_state['question_entered']:
+            st.session_state['question_entered'] = True  # Prevent duplicate follow-up questions
+
             question = st.text_input("Please enter your follow-up question:")
+
             if question:
                 # Create the context based on previous gene data
-                complete_context = "\n".join([f"Gene Information: {gene[0]}" for gene in genes_data])
+                complete_context = "\n".join([f"Gene Information: {gene[0]}" for gene in st.session_state['genes_data']])
                 chatbot_response = get_chatbot_response(question, complete_context)  # Assuming get_chatbot_response is defined
 
                 # Save the chatbot response to session state
                 st.session_state['chatbot_response'] = chatbot_response
                 st.write(f"Chatbot Response: {chatbot_response}")
         
+        elif follow_up_question.lower() != "yes" and st.session_state['question_entered']:
+            st.write("You can ask follow-up questions anytime.")
+
         # Display chatbot response if already stored in session state
         if st.session_state['chatbot_response']:
             st.write(f"Chatbot Response: {st.session_state['chatbot_response']}")
@@ -486,6 +478,7 @@ def genetic_counseling_assistant():
         )
         if continue_session == "No":
             st.write("Thank you for using the Genetic Counseling Assistant! Have a great day!")
+
 
 
 
