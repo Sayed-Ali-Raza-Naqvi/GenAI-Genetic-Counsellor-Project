@@ -12,15 +12,15 @@ import PyPDF2
 from dotenv import load_dotenv
 
 
-load_dotenv()
+# load_dotenv()
 
-# Get the API key securely from the environment
-api_key = os.getenv("GROQ_API_KEY")
-if not api_key:
-    raise ValueError("API key not found. Make sure GROQ_API_KEY is set in the .env file.")
+# # Get the API key securely from the environment
+# api_key = os.getenv("GROQ_API_KEY")
+# if not api_key:
+#     raise ValueError("API key not found. Make sure GROQ_API_KEY is set in the .env file.")
 
 # Initialize the client
-client = Groq(api_key=api_key)
+client = Groq(api_key=GROQ_API_KEY = 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)
 
 def get_gene_info_ensembl(gene_name):
     """
