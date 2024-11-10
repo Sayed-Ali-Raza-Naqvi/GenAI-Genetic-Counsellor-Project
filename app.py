@@ -12,7 +12,11 @@ import PyPDF2
 import subprocess
 import sys
 
-
+try:
+    import scispacy
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "scispacy"])
+    
 try:
     import en_ner_bionlp13cg_md
 except ImportError:
