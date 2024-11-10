@@ -394,8 +394,7 @@ def genetic_counseling_assistant():
     gene_name = st.text_input("Enter a gene name:")
     genes = []
     if gene_name:
-        if st.button("Add Gene"):
-            genes = [gene_name]
+        genes = [gene_name]
 
     # Remove duplicates if any
     genes = list(set(genes))
@@ -415,7 +414,7 @@ def genetic_counseling_assistant():
     st.subheader("Step 3: Specify Mutation Consequences")
     consequences = get_consequences_from_user()  # Assuming this function is defined
 
-    # Button to confirm and proceed with gene data processing
+    # Add a button to process further
     if st.button("Process Gene Data"):
         # Step 4: Retrieve and display gene data
         st.subheader("Step 4: Process Gene Data")
@@ -443,7 +442,7 @@ def genetic_counseling_assistant():
         
         if follow_up_question.lower() == "yes":
             question = st.text_input("Please enter your follow-up question:")
-            if question and st.button("Get Chatbot Response"):
+            if question:
                 complete_context = "\n".join([
                     f"Gene Information: {gene[0]}" for gene in genes_data
                 ])
@@ -456,6 +455,7 @@ def genetic_counseling_assistant():
         )
         if continue_session == "No":
             st.write("Thank you for using the Genetic Counseling Assistant! Have a great day!")
+
 
 
 # Run the Streamlit app
