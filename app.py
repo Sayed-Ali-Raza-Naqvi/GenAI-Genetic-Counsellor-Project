@@ -17,6 +17,7 @@ api_key = os.getenv("GROQ_API_KEY")
 if not api_key:
     raise ValueError("API key not found. Make sure GROQ_API_KEY is set in the .env file.")
 
+client = Groq(api_key=api_key)
 
 st.set_page_config(page_title="Variantor - Genetic Counseling Assistant", page_icon=":dna:")
 
