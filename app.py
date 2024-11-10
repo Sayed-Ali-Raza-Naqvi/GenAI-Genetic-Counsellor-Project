@@ -391,7 +391,7 @@ def genetic_counseling_assistant():
 
     # Step 1: Enter gene names
     st.subheader("Step 1: Enter Gene Name")
-    gene_name = st.text_input("Enter a gene name:")
+    gene_name = st.text_input("Enter a gene name:", value=st.session_state.get("gene_name", ""))
     genes = []
     if gene_name:
         genes = [gene_name]
@@ -407,7 +407,7 @@ def genetic_counseling_assistant():
     st.subheader("Step 2: Specify Mutation Retrieval Limit")
     mutation_limit = st.number_input(
         "Enter the number of mutations to retrieve (default 5):",
-        min_value=1, value=5
+        min_value=1, value=st.session_state.get("mutation_limit", 5)
     )
 
     # Step 3: Get valid mutation consequences from the user
@@ -425,9 +425,10 @@ def genetic_counseling_assistant():
             mutations = get_filtered_mutation_data_ensembl(gene, mutation_limit, consequences)
 
             genes_data.append((gene_info, gene_function, mutations))
-        
-        st.session_state.genes_data = genes_data
-        
+
+        # Save genes_data to session state
+        st.session_state["genes_data"] = genes_data
+
         # Step 5: Generate report and allow download
         if genes_data:
             report_content = generate_report(genes_data)  # Assuming generate_report is defined
@@ -445,11 +446,17 @@ def genetic_counseling_assistant():
         if follow_up_question.lower() == "yes":
             question = st.text_input("Please enter your follow-up question:")
             if question:
-                complete_context = "\n".join([
-                    f"Gene Information: {gene[0]}" for gene in genes_data
-                ])
+                # Create the context based on previous gene data
+                complete_context = "\n".join([f"Gene Information: {gene[0]}" for gene in genes_data])
                 chatbot_response = get_chatbot_response(question, complete_context)  # Assuming get_chatbot_response is defined
+
+                # Save the chatbot response to session state
+                st.session_state["chatbot_response"] = chatbot_response
                 st.write(f"Chatbot Response: {chatbot_response}")
+        
+        # Display chatbot response if already stored in session state
+        if "chatbot_response" in st.session_state:
+            st.write(f"Chatbot Response: {st.session_state['chatbot_response']}")
 
         # Step 7: Ask if the user wants to process another set of gene data
         continue_session = st.selectbox(
@@ -457,7 +464,6 @@ def genetic_counseling_assistant():
         )
         if continue_session == "No":
             st.write("Thank you for using the Genetic Counseling Assistant! Have a great day!")
-
 
 
 # Run the Streamlit app
