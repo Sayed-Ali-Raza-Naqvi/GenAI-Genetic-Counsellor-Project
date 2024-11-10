@@ -386,6 +386,10 @@ def get_chatbot_response(question, context):
     return chat_completion.choices[0].message.content
     
 
+import streamlit as st
+
+# Assuming all necessary functions like `get_gene_info_ensembl()`, `get_gene_function()`, `get_filtered_mutation_data_ensembl()`, `generate_report()` etc. are defined elsewhere.
+
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
 
@@ -398,6 +402,9 @@ def genetic_counseling_assistant():
     
     if 'report_generated' not in st.session_state:
         st.session_state.report_generated = False  # Track whether the report has been generated
+
+    if 'genes_data' not in st.session_state:
+        st.session_state.genes_data = []  # Store genes data for session
 
     # Direct gene name input
     gene_name = st.text_input("Enter a gene name:", key="gene_name_input_1")
@@ -427,13 +434,6 @@ def genetic_counseling_assistant():
 
                 genes_data.append((gene_info, gene_function, mutations))
 
-            if genes_data:
-                # Display retrieved gene information
-                for gene_data in genes_data:
-                    gene_info, gene_function, mutations = gene_data
-                    st.subheader(f"Gene: {gene_info}")
-                    st.write(f"Function: {gene_function}")
-                    st.write(f"Mutations: {mutations}")
 
                 # Build complete context for chatbot (hidden from user)
                 complete_context = ""
@@ -446,26 +446,8 @@ def genetic_counseling_assistant():
                 # Save the complete context in session state for chatbot
                 st.session_state.chatbot_context = complete_context
 
-                # Only show the "Generate Genetic Counseling Report" button if the report has not been generated yet
-                if not st.session_state.report_generated:
-                    report_button = st.button("Generate Genetic Counseling Report", key="generate_report_button_1")
-                    if report_button:
-                        # Generate the report based on the data retrieved
-                        report_content = generate_report(genes_data)
-                        # Save the generated report as a PDF (using Streamlit's download button)
-                        with open("genetic_counseling_report.pdf", "wb") as f:
-                            f.write(report_content)
-
-                        # Display the download button
-                        st.download_button(
-                            label="Download Genetic Counseling Report",
-                            data=report_content,
-                            file_name="genetic_counseling_report.pdf",
-                            mime="application/pdf"
-                        )
-
-                        # Mark the report as generated
-                        st.session_state.report_generated = True
+                # Store genes_data in session state to use later for report generation
+                st.session_state.genes_data = genes_data
 
                 # Chatbot interaction for follow-up questions
                 follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? Enter your question or leave blank to stop:", key="follow_up_question_input_1")
@@ -483,11 +465,31 @@ def genetic_counseling_assistant():
 
         # Ask if the user wants to process another set of gene data
         continue_session = st.radio("Would you like to process another set of gene data?", ("Yes", "No"), key="continue_session_radio_1")
+        
         if continue_session == "No":
-            st.write("Goodbye!")
+            st.session_state.report_generated = True  # Set report as generated when the session ends
+            st.write("You have chosen to end the session.")
+            
+            # Generate the report based on the data retrieved
+            if st.session_state.genes_data:
+                report_content = generate_report(st.session_state.genes_data)
+                # Save the generated report as a PDF (using Streamlit's download button)
+                with open("genetic_counseling_report.pdf", "wb") as f:
+                    f.write(report_content)
+
+                # Display the download button for the report
+                st.download_button(
+                    label="Download Genetic Counseling Report",
+                    data=report_content,
+                    file_name="genetic_counseling_report.pdf",
+                    mime="application/pdf"
+                )
+            
+            st.write("Report generated and ready for download.")
+
         elif continue_session == "Yes":
-            # Reset report generation state for new session
-            st.session_state.report_generated = False  # Allow report generation again if the user chooses to start a new session
+            # Allow report generation again if the user decides to start a new session
+            st.session_state.report_generated = False
 
 
 # Run the Streamlit app
