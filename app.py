@@ -9,6 +9,14 @@ import fitz
 from groq import Groq
 from docx import Document
 import PyPDF2
+import subprocess
+import sys
+
+
+try:
+    import en_ner_bionlp13cg_md
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.1/en_ner_bionlp13cg_md-0.5.1.tar.gz"])
 
 nlp = spacy.load("en_ner_bionlp13cg_md")
 
