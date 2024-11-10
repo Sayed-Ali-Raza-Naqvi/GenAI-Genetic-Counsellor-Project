@@ -386,8 +386,30 @@ def get_chatbot_response(question, context):
     return chat_completion.choices[0].message.content
     
 
+import streamlit as st
+
+# Assuming these functions are already defined in your app
+# def get_consequences_from_user():
+#     pass
+# def get_gene_info_ensembl(gene):
+#     pass
+# def get_gene_function(gene):
+#     pass
+# def get_filtered_mutation_data_ensembl(gene, mutation_limit, consequences):
+#     pass
+# def generate_report(genes_data):
+#     pass
+# def get_chatbot_response(question, context):
+#     pass
+
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
+
+    # Initialize session state variables if they do not exist
+    if 'genes_data' not in st.session_state:
+        st.session_state['genes_data'] = []
+    if 'chatbot_response' not in st.session_state:
+        st.session_state['chatbot_response'] = None
 
     # Step 1: Enter gene names
     st.subheader("Step 1: Enter Gene Name")
@@ -427,7 +449,7 @@ def genetic_counseling_assistant():
             genes_data.append((gene_info, gene_function, mutations))
 
         # Save genes_data to session state
-        st.session_state["genes_data"] = genes_data
+        st.session_state['genes_data'] = genes_data
 
         # Step 5: Generate report and allow download
         if genes_data:
@@ -451,11 +473,11 @@ def genetic_counseling_assistant():
                 chatbot_response = get_chatbot_response(question, complete_context)  # Assuming get_chatbot_response is defined
 
                 # Save the chatbot response to session state
-                st.session_state["chatbot_response"] = chatbot_response
+                st.session_state['chatbot_response'] = chatbot_response
                 st.write(f"Chatbot Response: {chatbot_response}")
         
         # Display chatbot response if already stored in session state
-        if "chatbot_response" in st.session_state:
+        if st.session_state['chatbot_response']:
             st.write(f"Chatbot Response: {st.session_state['chatbot_response']}")
 
         # Step 7: Ask if the user wants to process another set of gene data
@@ -464,6 +486,7 @@ def genetic_counseling_assistant():
         )
         if continue_session == "No":
             st.write("Thank you for using the Genetic Counseling Assistant! Have a great day!")
+
 
 
 # Run the Streamlit app
