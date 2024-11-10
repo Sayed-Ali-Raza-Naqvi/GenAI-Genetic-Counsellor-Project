@@ -4,7 +4,7 @@ import spacy
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from reportlab.lib import pagesizes, color
+from reportlab.lib import pagesizes, colors
 import fitz
 from groq import Groq
 from docx import Document
