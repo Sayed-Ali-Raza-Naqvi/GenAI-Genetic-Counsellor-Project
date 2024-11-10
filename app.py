@@ -12,23 +12,6 @@ import PyPDF2
 import subprocess
 import sys
 
-try:
-    import scispacy
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "scispacy"])
-
-try:
-    import spacy
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "spacy"])
-
-# Install the specific model if it is not installed yet
-try:
-    spacy.load("en_ner_bionlp13cg_md")
-except OSError:
-    print("Model not found, installing...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.1/en_ner_bionlp13cg_md-0.5.1.tar.gz"])
-
 nlp = spacy.load("en_ner_bionlp13cg_md")
 
 os.environ["GROQ_API_KEY"] = "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"
