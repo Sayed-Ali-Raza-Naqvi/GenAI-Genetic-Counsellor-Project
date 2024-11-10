@@ -386,6 +386,33 @@ def get_chatbot_response(question, context):
     return chat_completion.choices[0].message.content
     
 
+import streamlit as st
+
+# Sample helper functions (replace with your actual functions)
+def get_chatbot_response(question, context):
+    # Simulate a chatbot response for the sake of debugging
+    return f"Chatbot response to: {question}"
+
+def get_consequences_from_user():
+    # Dummy function, replace with your actual implementation
+    return ["consequence1", "consequence2"]
+
+def get_gene_info_ensembl(gene):
+    # Dummy function, replace with your actual implementation
+    return f"Info for gene: {gene}"
+
+def get_gene_function(gene):
+    # Dummy function, replace with your actual implementation
+    return f"Function for gene: {gene}"
+
+def get_filtered_mutation_data_ensembl(gene, limit, consequences):
+    # Dummy function, replace with your actual implementation
+    return f"Mutations for gene: {gene}"
+
+def generate_report(genes_data):
+    # Dummy function, replace with your actual implementation
+    return f"Report for {len(genes_data)} genes."
+
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
 
@@ -454,18 +481,21 @@ def genetic_counseling_assistant():
             st.subheader("Step 7: Ask Follow-up Question")
             follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? (yes/no):").strip().lower()
 
+            st.write(f"Follow-up question asked: {follow_up_question}")  # Debugging statement
+
             if follow_up_question == "yes":
                 st.session_state['follow_up_question_asked'] = True  # Mark that a follow-up question has been asked
 
                 # Show input for follow-up question and submit button
                 question = st.text_input("Please enter your follow-up question:")
                 if question:
-                    # Store the question in session state
-                    st.session_state['user_question'] = question
+                    st.session_state['user_question'] = question  # Store the question
                     st.session_state['chatbot_response'] = None  # Reset previous chatbot response
                     
                     # Show button to submit the question
                     if st.button("Submit Follow-up Question"):
+                        st.write(f"User Question Submitted: {question}")  # Debugging statement
+
                         # Create the context based on previous gene data
                         complete_context = "\n".join([f"Gene Information: {gene[0]}" for gene in st.session_state['genes_data']])
 
@@ -474,6 +504,7 @@ def genetic_counseling_assistant():
 
                         # Store the chatbot response in session state
                         st.session_state['chatbot_response'] = chatbot_response
+                        st.write(f"Chatbot Response: {chatbot_response}")  # Debugging statement
 
         elif st.session_state['follow_up_question_asked']:
             # Display the stored chatbot response if available
@@ -494,10 +525,6 @@ def genetic_counseling_assistant():
             st.session_state['genes_data'] = []  # Reset gene data
             st.session_state['chatbot_response'] = None  # Reset chatbot response
 
-
-    st.write(f"Follow-up question asked: {st.session_state['follow_up_question_asked']}")
-    st.write(f"User Question: {st.session_state['user_question']}")
-    st.write(f"Chatbot Response: {st.session_state['chatbot_response']}")
 
 # Run the Streamlit app
 if __name__ == "__main__":
