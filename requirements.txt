@@ -5,3 +5,4 @@ PyMuPDF==1.18.19
 python-docx==0.8.11
 https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.1/en_ner_bionlp13cg_md-0.5.1.tar.gz
 groq
+requests
