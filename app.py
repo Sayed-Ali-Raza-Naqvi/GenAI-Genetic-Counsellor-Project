@@ -386,10 +386,6 @@ def get_chatbot_response(question, context):
     return chat_completion.choices[0].message.content
     
 
-import streamlit as st
-
-# Assuming all necessary functions like `get_gene_info_ensembl()`, `get_gene_function()`, `get_filtered_mutation_data_ensembl()`, `generate_report()` etc. are defined elsewhere.
-
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
 
