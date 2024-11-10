@@ -389,12 +389,15 @@ def get_chatbot_response(question, context):
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
 
-    # Check if 'chatbot_context' exists in session state, initialize if not
+    # Initialize session state variables
     if 'chatbot_context' not in st.session_state:
         st.session_state.chatbot_context = ""
-
+    
     if 'chatbot_response' not in st.session_state:
         st.session_state.chatbot_response = ""
+    
+    if 'report_generated' not in st.session_state:
+        st.session_state.report_generated = False  # Track whether the report has been generated
 
     # Direct gene name input
     gene_name = st.text_input("Enter a gene name:", key="gene_name_input")
@@ -424,15 +427,12 @@ def genetic_counseling_assistant():
                 genes_data.append((gene_info, gene_function, mutations))
 
             if genes_data:
-                # Button to generate the report
-                report_button = st.button("Generate Genetic Counseling Report", key="generate_report_button")
-                if report_button:
-                    # Generate the report based on the data retrieved
-                    report_content = generate_report(genes_data)
-                    # Save the generated report as a PDF
-                    with open("genetic_counseling_report.pdf", "wb") as f:
-                        f.write(report_content)
-                    st.success("Genetic Counseling Report has been generated and saved as 'genetic_counseling_report.pdf'")
+                # Display retrieved gene information
+                for gene_data in genes_data:
+                    gene_info, gene_function, mutations = gene_data
+                    st.subheader(f"Gene: {gene_info}")
+                    st.write(f"Function: {gene_function}")
+                    st.write(f"Mutations: {mutations}")
 
                 # Build complete context for chatbot (hidden from user)
                 complete_context = ""
@@ -445,24 +445,44 @@ def genetic_counseling_assistant():
                 # Save the complete context in session state for chatbot
                 st.session_state.chatbot_context = complete_context
 
+                # Add button to generate report
+                if not st.session_state.report_generated:
+                    report_button = st.button("Generate Genetic Counseling Report", key="generate_report_button")
+                    if report_button:
+                        # Generate the report based on the data retrieved
+                        report_content = generate_report(genes_data)
+                        # Save the generated report as a PDF
+                        with open("genetic_counseling_report.pdf", "wb") as f:
+                            f.write(report_content)
+                        st.success("Genetic Counseling Report has been generated and saved as 'genetic_counseling_report.pdf'")
+
+                        # Mark the report as generated
+                        st.session_state.report_generated = True
+
+                # Chatbot interaction for follow-up questions
+                follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? Enter your question or leave blank to stop:", key="follow_up_question_input")
+
+                if follow_up_question:
+                    # Call the chatbot function (assuming chatbot_with_groq is defined)
+                    response = chatbot_with_groq(follow_up_question, st.session_state.chatbot_context)
+                    st.session_state.chatbot_response = response
+
+                if st.session_state.chatbot_response:
+                    st.write(f"Chatbot Response: {st.session_state.chatbot_response}")
+
         else:
             st.write("Please select and submit mutation consequences to proceed.")
-
-        # Handle follow-up question
-        follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? Enter your question or leave blank to stop:", key="follow_up_question_input")
-
-        if follow_up_question:
-            # Call the chatbot function (assuming chatbot_with_groq is defined)
-            response = chatbot_with_groq(follow_up_question, st.session_state.chatbot_context)
-            st.session_state.chatbot_response = response
-
-        if st.session_state.chatbot_response:
-            st.write(f"Chatbot Response: {st.session_state.chatbot_response}")
 
         # Ask if the user wants to process another set of gene data
         continue_session = st.radio("Would you like to process another set of gene data?", ("Yes", "No"), key="continue_session_radio")
         if continue_session == "No":
             st.write("Goodbye!")
+
+
+# Run the Streamlit app
+if __name__ == "__main__":
+    genetic_counseling_assistant()
+
 
 
 # Run the Streamlit app
