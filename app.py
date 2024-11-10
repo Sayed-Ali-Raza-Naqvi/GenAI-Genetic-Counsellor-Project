@@ -425,7 +425,9 @@ def genetic_counseling_assistant():
             mutations = get_filtered_mutation_data_ensembl(gene, mutation_limit, consequences)
 
             genes_data.append((gene_info, gene_function, mutations))
-
+        
+        st.session_state.genes_data = genes_data
+        
         # Step 5: Generate report and allow download
         if genes_data:
             report_content = generate_report(genes_data)  # Assuming generate_report is defined
