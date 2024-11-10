@@ -494,10 +494,10 @@ def genetic_counseling_assistant():
             st.session_state['genes_data'] = []  # Reset gene data
             st.session_state['chatbot_response'] = None  # Reset chatbot response
 
-st.write(f"Follow-up question asked: {st.session_state['follow_up_question_asked']}")
-st.write(f"User Question: {st.session_state['user_question']}")
-st.write(f"Chatbot Response: {st.session_state['chatbot_response']}")
 
+    st.write(f"Follow-up question asked: {st.session_state['follow_up_question_asked']}")
+    st.write(f"User Question: {st.session_state['user_question']}")
+    st.write(f"Chatbot Response: {st.session_state['chatbot_response']}")
 
 # Run the Streamlit app
 if __name__ == "__main__":
