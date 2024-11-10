@@ -388,118 +388,112 @@ def get_chatbot_response(question, context):
 
 import streamlit as st
 
-# Assuming all necessary functions like `get_gene_info_ensembl()`, `get_gene_function()`, `get_filtered_mutation_data_ensembl()`, `generate_report()` etc. are defined elsewhere.
+# Assuming all necessary functions like get_gene_info_ensembl(), get_gene_function(),
+# get_filtered_mutation_data_ensembl(), generate_report(), and chatbot_with_groq() are defined elsewhere.
 
 def genetic_counseling_assistant():
     st.title("Genetic Counseling Assistant")
 
     # Initialize session state variables
     if 'chatbot_context' not in st.session_state:
-        st.session_state.chatbot_context = ""
+        st.session_state.chatbot_context = ""  # To store the chatbot's context
     
     if 'chatbot_response' not in st.session_state:
-        st.session_state.chatbot_response = ""
+        st.session_state.chatbot_response = ""  # To store the chatbot's last response
+    
+    if 'genes_data' not in st.session_state:
+        st.session_state.genes_data = []  # To store genes data for session
     
     if 'report_generated' not in st.session_state:
         st.session_state.report_generated = False  # Track whether the report has been generated
 
-    if 'genes_data' not in st.session_state:
-        st.session_state.genes_data = []  # Store genes data for session
+    # Input for gene name
+    gene_name = st.text_input("Enter a gene name:")
 
-    # Direct gene name input
-    gene_name = st.text_input("Enter a gene name:", key="gene_name_input_1")
-
-    # Only proceed if the user has entered a gene name
+    # Handle input for gene name
     if gene_name:
         genes = [gene_name]
+        
+        # Input for mutation limit
+        mutation_limit = st.number_input("Enter the number of mutations to retrieve (default 5):", min_value=1, value=5)
 
-        # Get mutation limit from user
-        mutation_limit = st.number_input("Enter the number of mutations to retrieve (default 5):", min_value=1, value=5, key="mutation_limit_input_1")
+        # Mutation consequences selection
+        consequences = get_consequences_from_user()  # Assume this is a function you define
 
-        # Get valid mutation consequences from user
-        consequences = get_consequences_from_user()
+        submit_consequences_button = st.button("Submit Mutation Consequences")
 
-        # Add a button for submitting the mutation consequences
-        submit_consequences_button = st.button("Submit Mutation Consequences", key="submit_consequences_button_1")
-
-        genes_data = []
-
-        # Handle button click for submitting consequences
         if submit_consequences_button:
             # Retrieve gene data for all genes
+            genes_data = []
             for gene in genes:
                 gene_info = get_gene_info_ensembl(gene)
                 gene_function = get_gene_function(gene)
                 mutations = get_filtered_mutation_data_ensembl(gene, mutation_limit, consequences)
-
                 genes_data.append((gene_info, gene_function, mutations))
 
-            if genes_data:
-                # Display retrieved gene information
-                for gene_data in genes_data:
-                    gene_info, gene_function, mutations = gene_data
-                    st.subheader(f"Gene: {gene_info}")
-                    st.write(f"Function: {gene_function}")
-                    st.write(f"Mutations: {mutations}")
+            # Store retrieved data in session state
+            st.session_state.genes_data = genes_data
 
-                # Build complete context for chatbot (hidden from user)
-                complete_context = ""
-                for gene_data in genes_data:
-                    gene_info, gene_function, mutations = gene_data
-                    complete_context += f"Gene Information: {gene_info if gene_info else 'None'}\n"
-                    complete_context += f"Gene Function: {gene_function if gene_function else 'None'}\n"
-                    complete_context += f"Mutation Data: {mutations if mutations else 'None'}\n\n"
+            # Build complete context for the chatbot
+            complete_context = ""
+            for gene_data in genes_data:
+                gene_info, gene_function, mutations = gene_data
+                complete_context += f"Gene Information: {gene_info if gene_info else 'None'}\n"
+                complete_context += f"Gene Function: {gene_function if gene_function else 'None'}\n"
+                complete_context += f"Mutation Data: {mutations if mutations else 'None'}\n\n"
 
-                # Save the complete context in session state for chatbot
-                st.session_state.chatbot_context = complete_context
+            # Store the context in session state for the chatbot
+            st.session_state.chatbot_context = complete_context
 
-                # Store genes_data in session state to use later for report generation
-                st.session_state.genes_data = genes_data
-
-                # Chatbot interaction for follow-up questions
-                follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? Enter your question or leave blank to stop:", key="follow_up_question_input_1")
-
-                # Handle follow-up question and chatbot response
-                if follow_up_question:
-                    # Call the chatbot function (assuming chatbot_with_groq is defined)
-                    response = chatbot_with_groq(follow_up_question, st.session_state.chatbot_context)
-                    st.session_state.chatbot_response = response
-
-                # Display the chatbot response if available
-                if st.session_state.chatbot_response:
-                    st.write(f"Chatbot Response: {st.session_state.chatbot_response}")
-
+            # Display gene data
+            for gene_data in genes_data:
+                gene_info, gene_function, mutations = gene_data
+                st.subheader(f"Gene: {gene_info}")
+                st.write(f"Function: {gene_function}")
+                st.write(f"Mutations: {mutations}")
+        
         else:
             st.write("Please select and submit mutation consequences to proceed.")
 
-        # Ask if the user wants to process another set of gene data
-        continue_session = st.radio("Would you like to process another set of gene data?", ("Yes", "No"), key="continue_session_radio_1")
+        # Input for follow-up question to chatbot
+        follow_up_question = st.text_input("Do you have any follow-up questions related to genetic counseling? Enter your question:")
+
+        # Handle chatbot response
+        if follow_up_question:
+            response = chatbot_with_groq(follow_up_question, st.session_state.chatbot_context)  # Call to chatbot function
+            st.session_state.chatbot_response = response  # Store the response in session state
+
+        # Display chatbot response
+        if st.session_state.chatbot_response:
+            st.write(f"Chatbot Response: {st.session_state.chatbot_response}")
+
+        # Ask if the user wants to continue or generate the report
+        continue_session = st.radio("Would you like to process another set of gene data?", ("Yes", "No"))
         
         if continue_session == "No":
-            st.session_state.report_generated = True  # Set report as generated when the session ends
+            # Generate report when user decides to stop
+            st.session_state.report_generated = True
             st.write("You have chosen to end the session.")
-            
-            # Generate the report based on the data retrieved
+
             if st.session_state.genes_data:
+                # Generate the report (assumes generate_report function is defined)
                 report_content = generate_report(st.session_state.genes_data)
-                # Save the generated report as a PDF (using Streamlit's download button)
+                
+                # Save the generated report as a PDF
                 with open("genetic_counseling_report.pdf", "wb") as f:
                     f.write(report_content)
 
-                # Display the download button for the report
+                # Display download button for the generated report
                 st.download_button(
                     label="Download Genetic Counseling Report",
                     data=report_content,
                     file_name="genetic_counseling_report.pdf",
                     mime="application/pdf"
                 )
-            
-            st.write("Report generated and ready for download.")
 
         elif continue_session == "Yes":
-            # Allow report generation again if the user decides to start a new session
+            # Allow user to process another set of gene data if needed
             st.session_state.report_generated = False
-
 
 # Run the Streamlit app
 if __name__ == "__main__":
